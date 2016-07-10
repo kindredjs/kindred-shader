@@ -5,7 +5,6 @@ const Fit = require('canvas-fit')
 const canvas = document.body.appendChild(document.createElement('canvas'))
 const gl = canvas.getContext('webgl')
 const start = Date.now()
-const alpha = '1.0'
 
 const shader = Shader`
   attribute vec2 position;
@@ -21,8 +20,7 @@ const shader = Shader`
   void frag() {
     vec2 uv = square(shape, gl_FragCoord.xy);
 
-    gl_FragColor = vec4(fract(uv * 3. + time), sin(time), 0);
-    gl_FragColor.a = ${alpha};
+    gl_FragColor = vec4(fract(uv * 3. + time), sin(time), 1);
   }
 `.bind(gl)
 

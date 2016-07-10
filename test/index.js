@@ -1,4 +1,6 @@
+require('./template-interpolation')
 require('./source-inspection')
 require('./attributes')
+require('./transform')
 require('./uniforms')
 require('./errors')

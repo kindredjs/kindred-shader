@@ -1,9 +1,12 @@
 const format = require('kindred-shader-formatter')
+const staticModule = require('static-module')
 const isRequire = require('is-require')()
+const combine = require('stream-combiner')
 const through = require('through2')
 const glslify = require('glslify')
 const shortid = require('shortid')
 const falafel = require('falafel')
+const xtend = require('xtend')
 const path = require('path')
 
 const parseOptions = {
@@ -16,7 +19,14 @@ const parseOptions = {
 
 module.exports = transform
 
-function transform (filename, transformOpts) {
+function transform (filename, opts) {
+  return combine(
+    templateTransform(filename, opts),
+    fileTransform(filename, opts)
+  )
+}
+
+function templateTransform (filename, transformOpts) {
   var stream = through(write, flush)
   var cwd = path.dirname(filename)
   var buffer = []
@@ -64,13 +74,8 @@ function transform (filename, transformOpts) {
       if (node.parent.type !== 'VariableDeclarator') return
       if (node.parent.id.type !== 'Identifier') return
 
-      var name = node.parent.id.name
-      var decl = node.parent.parent
-      if (decl.type === 'VariableDeclaration') {
-        decl.update('')
-      }
-
-      requires.push(name)
+      var varName = node.parent.id.name
+      requires.push(varName)
     }
 
     function scrapeTemplates (node) {
@@ -101,26 +106,8 @@ function transform (filename, transformOpts) {
       }, function (err, source) {
         if (err) return stream.emit('error', err)
 
-        var vert = format.vert(source)
-        var frag = format.frag(source)
-        var bundled = ''
-
-        vert = JSON.stringify(vert)
-        frag = JSON.stringify(frag)
-        Object.keys(replaceMap).forEach(function (value) {
-          var key = replaceMap[value]
-
-          vert = vert.replace(new RegExp(key, 'g'), '"+(' + value + ')+"')
-          frag = frag.replace(new RegExp(key, 'g'), '"+(' + value + ')+"')
-        })
-
-        bundled += 'require("kindred-shader/raw")('
-        bundled += vert
-        bundled += ','
-        bundled += frag
-        bundled += ')'
-
-        node.update(bundled)
+        var jsReplacement = splitAndFormat(source, replaceMap)
+        node.update(jsReplacement)
         checkQueue(queue--)
       }).on('file', function (file) {
         stream.emit('file', file)
@@ -134,4 +121,71 @@ function transform (filename, transformOpts) {
       stream.push(null)
     }
   }
+}
+
+function fileTransform (filename, transformOpts) {
+  var cwd = path.dirname(filename)
+  var stream = staticModule({
+    'kindred-shader': {
+      file: replaceStream,
+      raw: function (vert, frag) {
+        var prefix = '(require("kindred-shader/raw")('
+        var args = [JSON.stringify(vert), JSON.stringify(frag)]
+        return prefix + args.join(',') + '))'
+      }
+    }
+  }, {
+    vars: {
+      __dirname: cwd,
+      __filename: filename
+    },
+    varModules: {
+      path: path
+    }
+  })
+
+  return stream
+
+  function replaceStream (glslFile, opts) {
+    var replacer = through()
+
+    opts = xtend({
+      basedir: cwd
+    }, transformOpts || {}, opts || {})
+
+    glslify.bundle(glslFile, opts, function (err, bundled) {
+      if (err) return stream.emit('error', err)
+
+      var jsReplacement = splitAndFormat(bundled)
+      replacer.push(jsReplacement)
+      replacer.push(null)
+    }).on('file', function (file) {
+      stream.emit('file', file)
+    })
+
+    return replacer
+  }
+}
+
+function splitAndFormat (source, replaceMap) {
+  var vert = JSON.stringify(format.vert(source))
+  var frag = JSON.stringify(format.frag(source))
+  var bundled = ''
+
+  if (replaceMap) {
+    Object.keys(replaceMap).forEach(function (value) {
+      var key = replaceMap[value]
+
+      vert = vert.replace(new RegExp(key, 'g'), '"+(' + value + ')+"')
+      frag = frag.replace(new RegExp(key, 'g'), '"+(' + value + ')+"')
+    })
+  }
+
+  bundled += 'require("kindred-shader/raw")('
+  bundled += vert
+  bundled += ','
+  bundled += frag
+  bundled += ')'
+
+  return bundled
 }

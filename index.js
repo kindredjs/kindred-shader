@@ -2,7 +2,7 @@ const format = require('kindred-shader-formatter')
 const Shader = require('./raw')
 
 module.exports = createShader
-module.exports.raw = Shader
+module.exports.file = fileError
 
 function createShader (source) {
   if (Array.isArray(source)) {
@@ -27,4 +27,8 @@ function createShader (source) {
     format.vert(source),
     format.frag(source)
   )
+}
+
+function fileError () {
+  throw new Error('Shader.file() is currently only available when using kindred\'s compile-time transform.')
 }

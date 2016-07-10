@@ -2,11 +2,13 @@ var addLineNumbers = require('add-line-numbers')
 var magicUniforms = require('gl-magic-uniforms')
 var extract = require('gl-shader-extract')
 
-module.exports = Shader
+module.exports = createShader
+
+function createShader (vert, frag) {
+  return new Shader(vert, frag)
+}
 
 function Shader (vert, frag) {
-  if (!(this instanceof Shader)) return new Shader(vert, frag)
-
   this.gl = null
 
   this.program = null

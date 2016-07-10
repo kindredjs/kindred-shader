@@ -91,3 +91,27 @@ test('kindred-shader: invalid context errors', function (t) {
   t.ok(shader.compiled, 'shader.compiled === true')
   t.end()
 })
+
+test('kindred-shader: glslify error (without transform)', function (t) {
+  try {
+    Shader`
+      attribute vec2 position;
+
+      #pragma glslify: square = require('glsl-square-frame')
+
+      void vert() {
+        gl_Position = vec4(position, 1, 1);
+      }
+
+      void frag() {
+        gl_FragColor = vec4(1);
+      }
+    `
+  } catch (e) {
+    t.ok(e.message.indexOf('glslify') !== -1, 'error on using glslify, referring as such')
+    t.end()
+    return
+  }
+
+  t.fail('Shader did not throw error on creation')
+})
