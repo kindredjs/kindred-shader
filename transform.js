@@ -16,12 +16,12 @@ const parseOptions = {
 
 module.exports = transform
 
-function transform (filename) {
+function transform (filename, transformOpts) {
+  var stream = through(write, flush)
   var cwd = path.dirname(filename)
   var buffer = []
-  var stream
 
-  return stream = through(write, flush)
+  return stream
 
   function write (chunk, _, next) {
     buffer.push(chunk)
@@ -101,10 +101,12 @@ function transform (filename) {
       }, function (err, source) {
         if (err) return stream.emit('error', err)
 
-        var vert = JSON.stringify(format.vert(source))
-        var frag = JSON.stringify(format.frag(source))
+        var vert = format.vert(source)
+        var frag = format.frag(source)
         var bundled = ''
 
+        vert = JSON.stringify(vert)
+        frag = JSON.stringify(frag)
         Object.keys(replaceMap).forEach(function (value) {
           var key = replaceMap[value]
 

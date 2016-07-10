@@ -1,3 +1,4 @@
+var addLineNumbers = require('add-line-numbers')
 var magicUniforms = require('gl-magic-uniforms')
 var extract = require('gl-shader-extract')
 
@@ -15,8 +16,9 @@ function Shader (vert, frag) {
   this._vertSource = vert
   this._fragSource = frag
 
-  this.uniforms = null
-  this.attributes = null
+  this.compiled = false
+  this.uniforms = {}
+  this.attributes = {}
 }
 
 Object.defineProperties(Shader.prototype, {
@@ -29,8 +31,11 @@ Shader.prototype.bind = function (gl) {
     if (!gl) throw new Error('.bind() must be called with a WebGL context at least once.')
     this._setup(gl)
   } else
-  if (this.gl !== gl) {
+  if (gl && this.gl !== gl) {
     throw new Error('Shaders can only support one context at a time.')
+  } else
+  if (!this.compiled) {
+    this._setup(gl)
   }
 
   this.gl.useProgram(this.program)
@@ -38,9 +43,17 @@ Shader.prototype.bind = function (gl) {
   return this
 }
 
+Shader.prototype._bail = function (source, error) {
+  if (source) {
+    error += '\n' + addLineNumbers(source)
+  }
+
+  throw new Error('\n' + error + '\n')
+}
+
 Shader.prototype._setup = function (gl) {
   if (!gl) throw new Error('._setup() needs to be called with a WebGLRenderingContext')
-  if (this.gl) throw new Error('._setup() called unexpectedly')
+  if (this.gl && this.compiled) throw new Error('._setup() called unexpectedly')
 
   this.gl = gl
 
@@ -54,12 +67,10 @@ Shader.prototype._setup = function (gl) {
   gl.compileShader(this.fragShader)
 
   if (!gl.getShaderParameter(this.vertShader, gl.COMPILE_STATUS)) {
-    var err = gl.getShaderInfoLog(this.vertShader)
-    throw new Error(err)
+    return this._bail(this.vert, gl.getShaderInfoLog(this.vertShader))
   }
   if (!gl.getShaderParameter(this.fragShader, gl.COMPILE_STATUS)) {
-    var err = gl.getShaderInfoLog(this.fragShader)
-    throw new Error(err)
+    return this._bail(this.frag, gl.getShaderInfoLog(this.fragShader))
   }
 
   gl.attachShader(this.program, this.vertShader)
@@ -67,14 +78,14 @@ Shader.prototype._setup = function (gl) {
   gl.linkProgram(this.program)
 
   if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
-    var err = gl.getProgramInfoLog(this.program)
-    throw new Error(err)
+    return this._bail('', gl.getProgramInfoLog(this.program))
   }
 
   gl.useProgram(this.program)
 
   var types = extract(gl, this.program)
 
+  this.compiled = true
   this.uniforms = magicUniforms(gl, this.program, types.uniforms)
   this.attributes = {}
 

@@ -24,7 +24,7 @@ const shader = Shader`
     gl_FragColor = vec4(fract(uv * 3. + time), sin(time), 0);
     gl_FragColor.a = ${alpha};
   }
-`
+`.bind(gl)
 
 render()
 function render () {
@@ -34,7 +34,7 @@ function render () {
   const height = canvas.height
 
   gl.viewport(0, 0, width, height)
-  shader.bind(gl)
+  shader.bind()
   shader.uniforms.time = (Date.now() - start) / 1000
   shader.uniforms.shape = [width, height]
   triangle(gl)
