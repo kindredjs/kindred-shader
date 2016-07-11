@@ -1,6 +1,6 @@
 {
   "name": "kindred-shader",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Kindred's core shader API",
   "license": "MIT",
   "scripts": {
