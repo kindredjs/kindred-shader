@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](http://standardjs.com/)
 [![](https://img.shields.io/npm/v/kindred-shader.svg?style=flat-square)](https://npmjs.com/package/kindred-shader)
 [![](https://img.shields.io/circleci/project/kindredjs/kindred-shader/master.svg?style=flat-square)](https://circleci.com/gh/kindredjs/kindred-shader)
-[![](https://img.shields.io/appveyor/ci/hughsk/kindred-shader.svg?style=flat-square)]()
+[![](https://img.shields.io/appveyor/ci/hughsk/kindred-shader.svg?style=flat-square)](https://ci.appveyor.com/project/hughsk/kindred-shader)
 
 A lightweight WebGL shader API.
 
