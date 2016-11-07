@@ -70,6 +70,7 @@ WIP :)
 ### `shader = Shader.file(source)`
 ### `shader = Shader.raw(vert, frag)`
 ### `shader.recompile(vert, frag)`
+### `shader.copy()`
 
 ## Browserify Transform
 

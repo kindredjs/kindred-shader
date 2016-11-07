@@ -136,6 +136,10 @@ Shader.prototype.recompile = function (vert, frag) {
   }
 }
 
+Shader.prototype.copy = function () {
+  return new Shader(this.vert, this.frag)
+}
+
 Shader.prototype.toJSON = function () {
   return {
     vert: this.vert,
