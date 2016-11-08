@@ -8,7 +8,7 @@ function createShader (vert, frag) {
   return new Shader(vert, frag)
 }
 
-var counter = parseInt(Math.random().toString(32).slice(2, 10), 36)
+var counter = parseInt(Math.random().toString(32).slice(2, 10), 32)
 
 function Shader (vert, frag) {
   this.gl = null
