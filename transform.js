@@ -101,7 +101,7 @@ function templateTransform (filename, transformOpts) {
       queue++
 
       glslify.bundle(combined, {
-        cwd: cwd,
+        basedir: cwd,
         inline: true
       }, function (err, source) {
         if (err) return stream.emit('error', err)
