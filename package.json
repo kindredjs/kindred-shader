@@ -14,7 +14,7 @@
   "dependencies": {
     "add-line-numbers": "^1.0.1",
     "falafel": "^1.2.0",
-    "gl-magic-uniforms": "^1.0.0",
+    "gl-magic-uniforms": "^2.0.0",
     "gl-shader-extract": "^1.1.2",
     "glslify": "^5.1.0",
     "is-require": "0.0.1",
